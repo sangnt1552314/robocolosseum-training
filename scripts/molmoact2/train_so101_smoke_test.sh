@@ -1,5 +1,7 @@
 
 #!/bin/bash
+set -euo pipefail
+
 export HF_HOME=/scratch/e1583535/cache
 export HF_DATASETS_CACHE=/scratch/e1583535/cache/datasets
 
