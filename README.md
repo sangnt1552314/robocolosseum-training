@@ -86,7 +86,10 @@ cd lerobot
 
 Install it in the Python environment used for training:
 
+If your environment sets a pip constraint file, you can unset it before installing:
+
 ```bash
+unset PIP_CONSTRAINT
 pip install -e .
 ```
 
