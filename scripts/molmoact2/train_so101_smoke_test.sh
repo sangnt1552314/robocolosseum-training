@@ -12,8 +12,11 @@ export LD_LIBRARY_PATH="$FFMPEG_ROOT/lib:${LD_LIBRARY_PATH:-}"
 # python -m lerobot.scripts.convert_dataset_v21_to_v30 \
 #     --repo-id=liu-tao/so101_dataset
 
+DATASET="liu-tao/so101_dataset"
+OUTPUT_DIR="outputs/molmoact2_so101_smoke_test"
+
 lerobot-train \
-    --dataset.repo_id=liu-tao/so101_dataset \
+    --dataset.repo_id="$DATASET" \
     --dataset.video_backend=pyav \
     --policy.type=molmoact2 \
     --policy.checkpoint_path=allenai/MolmoAct2-SO100_101 \
@@ -25,6 +28,7 @@ lerobot-train \
     --policy.normalize_gripper=true \
     --policy.normalization_mapping='{"ACTION":"MEAN_STD","STATE":"MEAN_STD","VISUAL":"IDENTITY"}' \
     --policy.gradient_checkpointing=true \
+    --policy.train_mode_vlm=fft \
     --policy.push_to_hub=false \
     --steps=10 \
     --batch_size=1 \
@@ -32,4 +36,4 @@ lerobot-train \
     --log_freq=1 \
     --save_checkpoint=true \
     --wandb.enable=false \
-    --output_dir=outputs/molmoact2_so101_smoke_test
+    --output_dir="$OUTPUT_DIR"

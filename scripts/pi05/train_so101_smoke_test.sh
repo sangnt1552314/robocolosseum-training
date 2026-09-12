@@ -12,8 +12,11 @@ export LD_LIBRARY_PATH="$FFMPEG_ROOT/lib:${LD_LIBRARY_PATH:-}"
 # python -m lerobot.scripts.convert_dataset_v21_to_v30 \
 #     --repo-id=liu-tao/so101_dataset
 
+DATASET="liu-tao/so101_dataset"
+OUTPUT_DIR="outputs/pi05_so101_smoke_test"
+
 lerobot-train \
-    --dataset.repo_id=liu-tao/so101_dataset \
+    --dataset.repo_id="$DATASET" \
     --dataset.video_backend=pyav \
     --policy.type=pi05 \
     --policy.pretrained_path=lerobot/pi05_base \
@@ -24,8 +27,10 @@ lerobot-train \
     --policy.gradient_checkpointing=true \
     --policy.dtype=bfloat16 \
     --policy.device=cuda \
+    --policy.freeze_vision_encoder=false \
+    --policy.train_expert_only=false \
     --policy.push_to_hub=false \
-    --output_dir=outputs/pi05_so101_smoke_test \
+    --output_dir="$OUTPUT_DIR" \
     --job_name=pi05_so101_smoke_test \
     --batch_size=1 \
     --num_workers=0 \
