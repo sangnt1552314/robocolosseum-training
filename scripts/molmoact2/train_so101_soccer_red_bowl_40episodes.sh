@@ -4,10 +4,6 @@ set -euo pipefail
 export HF_HOME=/scratch/e1583535/cache
 export HF_DATASETS_CACHE=/scratch/e1583535/cache/datasets
 
-export FFMPEG_ROOT=/scratch/e1583535/opt/ffmpeg-8.0.3
-export PATH="$FFMPEG_ROOT/bin:$PATH"
-export LD_LIBRARY_PATH="$FFMPEG_ROOT/lib:${LD_LIBRARY_PATH:-}"
-
 DATASET="tsangb34/robocolosseum-so101-soccer-red_bowl-40episodes"
 OUTPUT_DIR="outputs/molmoact2-so101-soccer-red_bowl-40episodes"
 
@@ -27,8 +23,9 @@ lerobot-train \
     --policy.type=molmoact2 \
     --policy.checkpoint_path=allenai/MolmoAct2 \
     --policy.device=cuda \
-    --policy.action_mode=continuous \
-    --policy.train_mode_vlm=fft \
+    --policy.action_mode=both \
+    --policy.inference_action_mode=continuous \
+    --policy.discrete_action_tokenizer=allenai/MolmoAct2-FAST-Tokenizer \
     --policy.chunk_size=30 \
     --policy.n_action_steps=30 \
     --policy.setup_type="single so100/so101 robotic arm in molmoact2" \
@@ -36,12 +33,16 @@ lerobot-train \
     --policy.image_keys='["observation.images.front","observation.images.wrist"]' \
     --policy.joint_signs='[1,-1,1,1,1,1]' \
     --policy.joint_offsets='[0,90,90,0,0,0]' \
-    --policy.dtype=bfloat16 \
+    --policy.model_dtype=bfloat16 \
     --policy.normalize_gripper=true \
     --policy.normalization_mapping='{"ACTION":"MEAN_STD","STATE":"MEAN_STD","VISUAL":"IDENTITY"}' \
     --policy.gradient_checkpointing=true \
     --policy.num_flow_timesteps=8 \
     --policy.freeze_embedding=true \
+    --policy.enable_lora_vlm=false \
+    --policy.enable_lora_action_expert=false \
+    --policy.train_action_expert_only=false \
+    --policy.enable_knowledge_insulation=false \
     --policy.optimizer_lr=1e-5 \
     --policy.optimizer_vit_lr=5e-6 \
     --policy.optimizer_connector_lr=5e-6 \
@@ -64,5 +65,4 @@ lerobot-train \
     --wandb.enable=true \
     --wandb.project="$WANDB_PROJECT" \
     --wandb.entity="$WANDB_ENTITY" \
-    --wandb.run_id="$JOB_NAME" \
     --output_dir="$OUTPUT_DIR"
