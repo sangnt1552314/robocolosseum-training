@@ -2,18 +2,10 @@
 #PBS -P CFP05-CF-002
 #PBS -j oe
 #PBS -k oed
-#PBS -N colosseum-lerobot-sample
+#PBS -N colosseum-lerobot-molmoact2-smoke-test
 #PBS -q auto
 #PBS -l select=1:ngpus=1
 #PBS -l walltime=02:00:00
-
-# ---------------------------------------------------------------------------
-# NUS Hopper PBS worker for the MolmoAct2 Colosseum policy.
-#
-# NOTE: walltime is a SAFETY CAP ONLY. The Python worker exits as soon as the
-# evaluation session finishes or a startup/idle timeout fires, so the GPU is
-# released immediately -- it does not run for the full walltime.
-# ---------------------------------------------------------------------------
 
 cd $PBS_O_WORKDIR
 
@@ -42,5 +34,5 @@ echo "Running on host: $(hostname)"
 echo "GPU info:"
 nvidia-smi --query-gpu=name,memory.total,memory.free --format=csv,noheader,nounits || echo "No GPU detected"
 
-bash scripts/molmoact2/train_so101.sh
+bash scripts/molmoact2/train_so101_smoke_test.sh
 EOF

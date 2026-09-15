@@ -76,4 +76,4 @@ train:
   use_wandb: false
 
   # Disable auxiliary depth/video distillation for smoke test
-  align_params: {}
+  # align_params: {}
