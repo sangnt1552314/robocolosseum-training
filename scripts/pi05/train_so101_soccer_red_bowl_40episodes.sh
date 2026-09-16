@@ -33,7 +33,7 @@ lerobot-train \
     --policy.scheduler_decay_lr=2.5e-6 \
     --policy.push_to_hub=true \
     --policy.repo_id="$HUB_REPO_ID" \
-    --policy.private=true \
+    --policy.private=false \
     --output_dir="$OUTPUT_DIR" \
     --job_name="$JOB_NAME" \
     --batch_size=16 \

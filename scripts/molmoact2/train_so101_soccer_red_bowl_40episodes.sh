@@ -52,7 +52,7 @@ lerobot-train \
     --policy.scheduler_decay_lr=1e-6 \
     --policy.push_to_hub=true \
     --policy.repo_id="$HUB_REPO_ID" \
-    --policy.private=true \
+    --policy.private=false \
     --policy.tags='["molmoact2","so101","robocolosseum","soccer-red_bowl"]' \
     --save_checkpoint_to_hub=false \
     --steps=921 \
