@@ -2,10 +2,10 @@
 #PBS -P CFP05-CF-002
 #PBS -j oe
 #PBS -k oed
-#PBS -N colosseum-lerobot-groot-n17-molmoact2-so100_101
+#PBS -N colosseum-lerobot-groot-n17-so101-soccer-red_bowl-40episodes
 #PBS -q auto
-#PBS -l select=1:ngpus=2
-#PBS -l walltime=24:00:00
+#PBS -l select=1:ngpus=1
+#PBS -l walltime=02:00:00
 
 cd $PBS_O_WORKDIR
 
@@ -22,7 +22,7 @@ if [ -f "$ENV_FILE" ]; then
 fi
 : "${HF_TOKEN:?HF_TOKEN not found. Add it to $ENV_FILE or set push_to_hub=false.}"
 
-LOG_DIR='./logs/groot-n17-molmoact2-so100_101'
+LOG_DIR='./logs/groot-n17-so101-soccer-red_bowl-40episodes'
 mkdir -p $LOG_DIR
 
 singularity exec -e --nv \
@@ -44,5 +44,5 @@ echo "Running on host: $(hostname)"
 echo "GPU info:"
 nvidia-smi --query-gpu=name,memory.total,memory.free --format=csv,noheader,nounits || echo "No GPU detected"
 
-bash scripts/groot/train_so101_molmoact2_so100_101.sh
+bash scripts/groot/train_so101_soccer_red_bowl_40episodes.sh
 EOF
