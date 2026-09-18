@@ -73,7 +73,7 @@ model:
   pretrained_ckpt: checkpoints/g05-base/checkpoints/model_state_dict.pt
 
   # 1 GPUs x 16/GPU = global batch 16
-  batch_size: 2
+  batch_size: 1
 
   num_workers: 8
   prefetch_factor: 2
