@@ -106,12 +106,13 @@ model:
 
     tokenizer_params:
       local_files_only: true
-      num_input_cameras: 2
+      num_input_cameras: 3
 
-    num_output_cameras: 2
+    num_output_cameras: 3
 
     camera_size_config:
       exterior: [256, 256]
+      wrist_left: [256, 256]
       wrist_right: [256, 256]
 
 

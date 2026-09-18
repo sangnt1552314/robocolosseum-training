@@ -12,6 +12,9 @@ export TMPDIR=/scratch/e1583535/tmp
 export TMP="$TMPDIR"
 export TEMP="$TMPDIR"
 
+export WANDB_PROJECT="RoboColosseum"
+export WANDB_ENTITY="tsangb34-national-university-of-singapore-students-union"
+
 mkdir -p "$TMPDIR"
 mkdir -p "$G05_OUTPUT_DIR"
 
