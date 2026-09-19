@@ -1,0 +1,37 @@
+states:
+  - observation.state.arm.position:
+      origin_keys:
+        - observation.state:
+            start: 0
+            end: 5
+
+  - observation.state.effector.position:
+      origin_keys:
+        - observation.state:
+            start: 5
+            end: 6
+
+actions:
+  - action.arm.position:
+      origin_keys:
+        - action:
+            start: 0
+            end: 5
+      subtract_state: true
+      relative_type: null
+
+  - action.effector.position:
+      origin_keys:
+        - action:
+            start: 5
+            end: 6
+      subtract_state: false
+
+images:
+  - observation.images.camera_top:
+      origin_keys: observation.images.front
+
+  - observation.images.camera_wrist_left:
+      origin_keys: observation.images.wrist
+
+norm_stats: /scratch/e1583535/projects/robocolosseum-training/scripts/lingbot/norm_stats/so101_stack_white_bowls_100episodes.json
