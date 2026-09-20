@@ -44,7 +44,8 @@ data:
 
   norm_stats_file: /scratch/e1583535/projects/robocolosseum-training/scripts/lingbot/norm_stats/so101_stack_white_bowls_100episodes.json
 
-  num_workers: 8
+  num_workers: 24
+  prefetch_factor: 6
   use_future_image: true
 
 train:
@@ -88,8 +89,8 @@ train:
   lr: 5.0e-5
   lr_decay_style: constant
   num_train_epochs: 6
-  micro_batch_size: 4
-  gradient_accumulation_steps: 16
+  micro_batch_size: 8
+  gradient_accumulation_steps: 8
   global_batch_size: 64
   ckpt_manager: dcp
   save_epochs: 1
