@@ -50,7 +50,7 @@ data:
 train:
   output_dir: /scratch/e1583535/projects/robocolosseum-training/outputs/lingbot/so101_stack_white_bowls_100episodes
   moe_monitor_interval: 1000
-  enable_gradient_checkpointing: true # Set to true if GPU memory is insufficient, but this will slow down training.
+  enable_gradient_checkpointing: false # H200 has ample VRAM headroom; off = faster. Set true if OOM.
   freeze_vit: false
   train_expert_only: false
   precompute_grid_thw: true
@@ -88,9 +88,9 @@ train:
   lr: 5.0e-5
   lr_decay_style: constant
   num_train_epochs: 6
-  micro_batch_size: 2
+  micro_batch_size: 4
   gradient_accumulation_steps: 16
-  global_batch_size: 32
+  global_batch_size: 64
   ckpt_manager: dcp
   save_epochs: 1
   enable_fp32: true

@@ -85,9 +85,9 @@ echo "Dataset: SO-101 stack white bowls"
 echo "Episodes: 100"
 echo "Epochs: 6"
 echo "GPU: 1"
-echo "Micro batch: 2"
+echo "Micro batch: 4"
 echo "Gradient accumulation: 16"
-echo "Global batch: 32"
+echo "Global batch: 64"
 echo "========================================"
 
 bash train.sh \
