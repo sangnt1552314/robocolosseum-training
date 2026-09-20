@@ -56,3 +56,16 @@ nvidia-smi -L
 bash scripts/run/finetune.sh \
   1 \
   so101_stack_white_bowls
+
+# Export the final checkpoint and upload it to the HuggingFace Hub.
+# G0.5 has no built-in push_to_hub, so this runs the standalone upload script.
+# A failure here must not mark a successful training run as failed.
+# HF_TOKEN comes from the PBS env or the repo .env file (loaded by the upload script).
+if [ -n "${HF_TOKEN:-}" ] || [ -f "$ROBO_ROOT/.env" ]; then
+  echo "Uploading fine-tuned checkpoint to HuggingFace Hub..."
+  bash "$ROBO_ROOT/scripts/g05/upload_so101_stack_white_bowls_100episodes.sh" \
+    || echo "Upload failed; run scripts/g05/upload_so101_stack_white_bowls_100episodes.sh manually."
+else
+  echo "HF_TOKEN not set and no .env found; skipping automatic upload."
+  echo "Run scripts/g05/upload_so101_stack_white_bowls_100episodes.sh manually to upload."
+fi
