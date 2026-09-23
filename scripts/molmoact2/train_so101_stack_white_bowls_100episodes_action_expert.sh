@@ -4,6 +4,10 @@ set -euo pipefail
 export HF_HOME=/scratch/e1583535/cache
 export HF_DATASETS_CACHE=/scratch/e1583535/cache/datasets
 
+export FFMPEG_ROOT=/scratch/e1583535/opt/ffmpeg-8.0.3
+export PATH="$FFMPEG_ROOT/bin:$PATH"
+export LD_LIBRARY_PATH="$FFMPEG_ROOT/lib:${LD_LIBRARY_PATH:-}"
+
 DATASET="Jiamo0912/robocolosseum-so101-stack-white_bowls-100episodes"
 DATASET_ROOT="/scratch/e1583535/datasets/robocolosseum-so101-stack-white_bowls-100episodes"
 OUTPUT_DIR="outputs/molmoact2-so101-stack-white_bowls-100episodes-action-expert"
@@ -25,9 +29,8 @@ lerobot-train \
     --policy.type=molmoact2 \
     --policy.checkpoint_path=allenai/MolmoAct2 \
     --policy.device=cuda \
-    --policy.action_mode=both \
+    --policy.action_mode=continuous \
     --policy.inference_action_mode=continuous \
-    --policy.discrete_action_tokenizer=allenai/MolmoAct2-FAST-Tokenizer \
     --policy.chunk_size=30 \
     --policy.n_action_steps=30 \
     --policy.setup_type="single so100/so101 robotic arm in molmoact2" \
@@ -37,7 +40,7 @@ lerobot-train \
     --policy.joint_offsets='[0,90,90,0,0,0]' \
     --policy.model_dtype=bfloat16 \
     --policy.normalize_gripper=true \
-    --policy.normalization_mapping='{"ACTION":"MEAN_STD","STATE":"MEAN_STD","VISUAL":"IDENTITY"}' \
+    --policy.normalization_mapping='{"ACTION":"QUANTILES","STATE":"QUANTILES","VISUAL":"IDENTITY"}' \
     --policy.gradient_checkpointing=true \
     --policy.num_flow_timesteps=8 \
     --policy.freeze_embedding=true \
@@ -46,8 +49,6 @@ lerobot-train \
     --policy.train_action_expert_only=true \
     --policy.enable_knowledge_insulation=false \
     --policy.optimizer_lr=1e-5 \
-    --policy.optimizer_vit_lr=5e-6 \
-    --policy.optimizer_connector_lr=5e-6 \
     --policy.optimizer_action_expert_lr=5e-5 \
     --policy.scheduler_warmup_steps=200 \
     --policy.scheduler_decay_steps=4690 \
