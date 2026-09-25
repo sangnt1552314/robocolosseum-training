@@ -4,29 +4,35 @@ set -euo pipefail
 # MolmoAct2 recipe from the VLA-REPLICA paper (https://irvlutd.github.io/VLAReplica/):
 # start from MolmoAct2-SO100_101, quantile normalization, batch 16, 1 GPU, 40K steps,
 # chunk 32 / 32 action steps, default vision encoder (trainable) and default LRs.
-# Checkpoints every 5K steps are pushed to the Hub and pruned locally, so re-submitting
-# the job resumes after a crash or walltime kill.
+# Checkpoints are saved every 10K steps and each is pushed to the Hub under checkpoints/<step>/.
 
 export HF_HOME=/scratch/e1583535/cache
 export HF_DATASETS_CACHE=/scratch/e1583535/cache/datasets
 
+export FFMPEG_ROOT=/scratch/e1583535/opt/ffmpeg-8.0.3
+export PATH="$FFMPEG_ROOT/bin:$PATH"
+export LD_LIBRARY_PATH="$FFMPEG_ROOT/lib:${LD_LIBRARY_PATH:-}"
+
+# Keep wandb staging/cache off the 40 GB home quota.
+export WANDB_DATA_DIR=/scratch/e1583535/cache/wandb/data
+export WANDB_CACHE_DIR=/scratch/e1583535/cache/wandb/cache
+export WANDB_ARTIFACT_DIR=/scratch/e1583535/cache/wandb/artifacts
+
 DATASET="Jiamo0912/robocolosseum-so101-stack-white_bowls-100episodes"
 DATASET_ROOT="/scratch/e1583535/datasets/robocolosseum-so101-stack-white_bowls-100episodes"
-OUTPUT_DIR="outputs/molmoact2-so101-stack-white_bowls-100episodes-vlareplica-40k"
-
-HUB_REPO_ID="tsangb34/molmoact2-so101-stack-white_bowls-100episodes-vlareplica-40k"
-
-# Number of finished checkpoints kept on local disk (all of them stay on the Hub).
-export KEEP_LOCAL_CHECKPOINTS=2
 
 JOB_NAME="molmoact2-so101-stack-white_bowls-100episodes-vlareplica-40k"
+MODELS_ROOT="/scratch/Projects/CFP-05/CFP05-CF-002/robocolosseum-finetuned-models"
+OUTPUT_DIR="$MODELS_ROOT/$JOB_NAME"
+
+HUB_REPO_ID="tsangb34/$JOB_NAME"
+
 WANDB_PROJECT="RoboColosseum"
 WANDB_ENTITY="tsangb34-national-university-of-singapore-students-union"
 
-source "$(dirname "$0")/../utils/resumable_lerobot_train.sh"
-
-# Resumes from the latest local/Hub checkpoint when re-submitted.
-run_resumable_train "$OUTPUT_DIR" "$HUB_REPO_ID" \
+# save_freq=10000 writes checkpoints at 10K, 20K, 30K and 40K; save_checkpoint_to_hub
+# pushes each one to <repo>/checkpoints/<step>/, and push_to_hub uploads the final model.
+lerobot-train \
     --dataset.repo_id="$DATASET" \
     --dataset.root="$DATASET_ROOT" \
     --dataset.video_backend=pyav \
@@ -62,7 +68,7 @@ run_resumable_train "$OUTPUT_DIR" "$HUB_REPO_ID" \
     --policy.private=false \
     --policy.tags='["molmoact2","so101","robocolosseum","stack-white_bowls","vlareplica"]' \
     --save_checkpoint=true \
-    --save_freq=5000 \
+    --save_freq=10000 \
     --save_checkpoint_to_hub=true \
     --steps=40000 \
     --batch_size=16 \
