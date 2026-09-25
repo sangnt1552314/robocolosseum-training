@@ -72,6 +72,12 @@ run_resumable_train() {
     local output_dir="$1" repo_id="$2"
     shift 2
 
+    # wandb stages a full copy of every model artifact (6-12 GB) under ~/.local/share
+    # and caches it under ~/.cache; keep both off the 40 GB home quota.
+    export WANDB_DATA_DIR="${WANDB_DATA_DIR:-/scratch/e1583535/cache/wandb/data}"
+    export WANDB_CACHE_DIR="${WANDB_CACHE_DIR:-/scratch/e1583535/cache/wandb/cache}"
+    export WANDB_ARTIFACT_DIR="${WANDB_ARTIFACT_DIR:-/scratch/e1583535/cache/wandb/artifacts}"
+
     local rc=0
     _hub_query "$repo_id" done || rc=$?
     if [ "$rc" -eq 0 ]; then
