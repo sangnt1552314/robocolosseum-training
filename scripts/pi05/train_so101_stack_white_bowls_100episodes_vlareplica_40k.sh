@@ -60,4 +60,5 @@ run_resumable_train "$OUTPUT_DIR" "$HUB_REPO_ID" \
     --wandb.enable=true \
     --wandb.project="$WANDB_PROJECT" \
     --wandb.entity="$WANDB_ENTITY" \
-    --wandb.run_id="$JOB_NAME"
+    --wandb.run_id="$JOB_NAME" \
+    --wandb.disable_artifact=true

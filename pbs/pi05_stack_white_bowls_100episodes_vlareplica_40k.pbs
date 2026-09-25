@@ -5,7 +5,7 @@
 #PBS -N colosseum-lerobot-pi05-so101-stack-white_bowls-100episodes-vlareplica-40k
 #PBS -q auto
 #PBS -l select=1:ngpus=1
-#PBS -l walltime=20:00:00
+#PBS -l walltime=8:00:00
 
 cd $PBS_O_WORKDIR
 
