@@ -8,6 +8,10 @@ set -euo pipefail
 export HF_HOME=/scratch/e1583535/cache
 export HF_DATASETS_CACHE=/scratch/e1583535/cache/datasets
 
+export FFMPEG_ROOT=/scratch/e1583535/opt/ffmpeg-8.0.3
+export PATH="$FFMPEG_ROOT/bin:$PATH"
+export LD_LIBRARY_PATH="$FFMPEG_ROOT/lib:${LD_LIBRARY_PATH:-}"
+
 DATASET="Jiamo0912/robocolosseum-so101-stack-white_bowls-100episodes"
 DATASET_ROOT="/scratch/e1583535/datasets/robocolosseum-so101-stack-white_bowls-100episodes"
 OUTPUT_DIR="outputs/pi05-so101-stack-white_bowls-100episodes-vlareplica-40k"
