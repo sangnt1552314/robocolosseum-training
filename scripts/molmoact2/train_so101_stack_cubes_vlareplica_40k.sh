@@ -18,10 +18,10 @@ export WANDB_DATA_DIR=/scratch/e1583535/cache/wandb/data
 export WANDB_CACHE_DIR=/scratch/e1583535/cache/wandb/cache
 export WANDB_ARTIFACT_DIR=/scratch/e1583535/cache/wandb/artifacts
 
-DATASET="Jiamo0912/robocolosseum-so101-stack-white_bowls-100episodes"
-DATASET_ROOT="/scratch/e1583535/datasets/robocolosseum-so101-stack-white_bowls-100episodes"
+DATASET="Jiamo0912/so101-stack-cubes"
+DATASET_ROOT="/scratch/e1583535/datasets/so101-stack-cubes"
 
-JOB_NAME="molmoact2-so101-stack-white_bowls-100episodes-vlareplica-40k"
+JOB_NAME="molmoact2-so101-stack-cubes-vlareplica-40k"
 MODELS_ROOT="/scratch/Projects/CFP-05/CFP05-CF-002/robocolosseum-finetuned-models"
 OUTPUT_DIR="$MODELS_ROOT/$JOB_NAME"
 
@@ -66,7 +66,7 @@ lerobot-train \
     --policy.push_to_hub=true \
     --policy.repo_id="$HUB_REPO_ID" \
     --policy.private=false \
-    --policy.tags='["molmoact2","so101","robocolosseum","stack-white_bowls"]' \
+    --policy.tags='["molmoact2","so101","robocolosseum","stack-cubes"]' \
     --save_checkpoint=true \
     --save_freq=10000 \
     --save_checkpoint_to_hub=true \
