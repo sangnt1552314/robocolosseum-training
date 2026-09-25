@@ -1,0 +1,48 @@
+#!/bin/bash
+#PBS -P CFP05-CF-002
+#PBS -j oe
+#PBS -k oed
+#PBS -N colosseum-lerobot-groot-n17-so101-upright-bottle-vlareplica-40k
+#PBS -q auto
+#PBS -l select=1:ngpus=1
+#PBS -l walltime=10:00:00
+
+cd $PBS_O_WORKDIR
+
+image="/app1/common/singularity-img/hopper/pytorch/pytorch_2.7.0_cuda_12.8.sif"
+
+module load singularity
+
+# Load secrets/config from a .env file (KEY=VALUE lines). set -a auto-exports them.
+ENV_FILE="$PBS_O_WORKDIR/.env"
+if [ -f "$ENV_FILE" ]; then
+    set -a
+    source "$ENV_FILE"
+    set +a
+fi
+: "${HF_TOKEN:?HF_TOKEN not found. Add it to $ENV_FILE or set push_to_hub=false.}"
+
+LOG_DIR='./logs/groot-n17-so101-upright-bottle-vlareplica-40k'
+mkdir -p $LOG_DIR
+
+singularity exec -e --nv \
+--env HF_HOME=/scratch/e1583535/cache \
+--env HF_TOKEN="$HF_TOKEN" \
+--env TMPDIR=/scratch/e1583535/tmp \
+--env TEMP=/scratch/e1583535/tmp \
+--env TMP=/scratch/e1583535/tmp \
+$image bash << 'EOF' > $LOG_DIR/stdout.$PBS_JOBID.log 2> $LOG_DIR/stderr.$PBS_JOBID.log
+
+mkdir -p /scratch/e1583535/tmp
+
+if [ -d "/scratch/e1583535/virtualenvs/lerobot-cu128" ]; then
+    source /scratch/e1583535/virtualenvs/lerobot-cu128/bin/activate
+fi
+
+echo "Starting policy worker at $(date)"
+echo "Running on host: $(hostname)"
+echo "GPU info:"
+nvidia-smi --query-gpu=name,memory.total,memory.free --format=csv,noheader,nounits || echo "No GPU detected"
+
+bash scripts/groot/train_so101_upright_bottle_vlareplica_40k.sh
+EOF
