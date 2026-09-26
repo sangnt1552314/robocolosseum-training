@@ -3,7 +3,8 @@ set -euo pipefail
 
 # pi05 recipe from the VLA-REPLICA paper (https://irvlutd.github.io/VLAReplica/):
 # quantile normalization, batch 16, 1 GPU, 40K steps, chunk 32 / 32 action steps,
-# default vision encoder (trainable) and default LR schedule.
+# default LR schedule.
+# Ablation: vision encoder (SigLIP) frozen; Gemma backbone and action expert still trained.
 
 export HF_HOME=/scratch/e1583535/cache
 export HF_DATASETS_CACHE=/scratch/e1583535/cache/datasets
@@ -14,14 +15,14 @@ export LD_LIBRARY_PATH="$FFMPEG_ROOT/lib:${LD_LIBRARY_PATH:-}"
 
 DATASET="Jiamo0912/robocolosseum-so101-stack-white_bowls-100episodes"
 DATASET_ROOT="/scratch/e1583535/datasets/robocolosseum-so101-stack-white_bowls-100episodes"
-OUTPUT_DIR="outputs/pi05-so101-stack-white_bowls-100episodes-vlareplica-40k"
+OUTPUT_DIR="outputs/pi05-so101-stack-white_bowls-100episodes-vlareplica-40k-frozen-vision"
 
-HUB_REPO_ID="tsangb34/pi05-so101-stack-white_bowls-100episodes-vlareplica-40k"
+HUB_REPO_ID="tsangb34/pi05-so101-stack-white_bowls-100episodes-vlareplica-40k-frozen-vision"
 
 # Number of finished checkpoints kept on local disk (all of them stay on the Hub).
 export KEEP_LOCAL_CHECKPOINTS=2
 
-JOB_NAME="pi05-so101-stack-white_bowls-100episodes-vlareplica-40k"
+JOB_NAME="pi05-so101-stack-white_bowls-100episodes-vlareplica-40k-frozen-vision"
 WANDB_PROJECT="RoboColosseum"
 WANDB_ENTITY="tsangb34-national-university-of-singapore-students-union"
 
@@ -41,7 +42,7 @@ run_resumable_train "$OUTPUT_DIR" "$HUB_REPO_ID" \
     --policy.chunk_size=32 \
     --policy.n_action_steps=32 \
     --policy.empty_cameras=1 \
-    --policy.freeze_vision_encoder=false \
+    --policy.freeze_vision_encoder=true \
     --policy.train_expert_only=false \
     --policy.gradient_checkpointing=false \
     --policy.compile_model=false \

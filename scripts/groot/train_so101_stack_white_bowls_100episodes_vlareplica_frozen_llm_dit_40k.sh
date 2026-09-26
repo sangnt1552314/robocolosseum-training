@@ -1,9 +1,13 @@
 #!/bin/bash
 set -euo pipefail
 
-# GR00T N1.7 recipe from the VLA-REPLICA paper (https://irvlutd.github.io/VLAReplica/):
-# batch 32, 40K steps, chunk 32 / 32 action steps, default vision encoder (frozen:
-# tune_visual=false) and default LR (1e-4 cosine, 5% warmup).
+# Ablation of train_so101_stack_white_bowls_100episodes_vlareplica_40k.sh: VLA-REPLICA's GR00T
+# freezing (https://github.com/IRVLUTD/VLAReplica/blob/main/train.sh, --policy.tune_diffusion_model=false
+# on top of the defaults). Only the freezing flags differ from the baseline run:
+#   frozen:    LLM (tune_llm=false), vision tower (tune_visual=false), DiT (tune_diffusion_model=false)
+#   trainable: state/action encoders, action decoder, position embedding (tune_projector=true),
+#              VLLN + VL self-attention (tune_vlln=true)
+# The baseline run instead trains the full LLM and the DiT (tune_llm=true, tune_diffusion_model=true).
 
 export HF_HOME=/scratch/e1583535/cache
 export HF_DATASETS_CACHE=/scratch/e1583535/cache/datasets
@@ -14,9 +18,9 @@ export LD_LIBRARY_PATH="$FFMPEG_ROOT/lib:${LD_LIBRARY_PATH:-}"
 
 DATASET="Jiamo0912/robocolosseum-so101-stack-white_bowls-100episodes"
 DATASET_ROOT="/scratch/e1583535/datasets/robocolosseum-so101-stack-white_bowls-100episodes"
-OUTPUT_DIR="outputs/groot-n17-so101-stack-white_bowls-100episodes-vlareplica-40k"
+OUTPUT_DIR="outputs/groot-n17-so101-stack-white_bowls-100episodes-vlareplica-frozen-llm-dit-40k"
 
-HUB_REPO_ID="tsangb34/groot-n17-so101-stack-white_bowls-100episodes-vlareplica-40k"
+HUB_REPO_ID="tsangb34/groot-n17-so101-stack-white_bowls-100episodes-vlareplica-frozen-llm-dit-40k"
 
 # Number of finished checkpoints kept on local disk (all of them stay on the Hub).
 export KEEP_LOCAL_CHECKPOINTS=2
@@ -24,7 +28,7 @@ export KEEP_LOCAL_CHECKPOINTS=2
 BATCH_SIZE=32
 STEPS=40000
 
-JOB_NAME="groot-n17-so101-stack-white_bowls-100episodes-vlareplica-40k"
+JOB_NAME="groot-n17-so101-stack-white_bowls-100episodes-vlareplica-frozen-llm-dit-40k"
 WANDB_PROJECT="RoboColosseum"
 WANDB_ENTITY="tsangb34-national-university-of-singapore-students-union"
 
@@ -47,9 +51,10 @@ run_resumable_train "$OUTPUT_DIR" "$HUB_REPO_ID" \
     --policy.relative_exclude_joints='["gripper"]' \
     --policy.use_bf16=true \
     --policy.model_params_fp32=true \
-    --policy.tune_llm=true \
+    --policy.tune_llm=false \
+    --policy.tune_visual=false \
     --policy.tune_projector=true \
-    --policy.tune_diffusion_model=true \
+    --policy.tune_diffusion_model=false \
     --policy.tune_vlln=true \
     --policy.tune_top_llm_layers=0 \
     --policy.max_steps="$STEPS" \

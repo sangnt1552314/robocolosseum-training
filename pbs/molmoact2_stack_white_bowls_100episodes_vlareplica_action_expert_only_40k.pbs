@@ -2,10 +2,10 @@
 #PBS -P CFP05-CF-002
 #PBS -j oe
 #PBS -k oed
-#PBS -N colosseum-lerobot-pi05-so101-stack-white_bowls-100episodes-vlareplica-40k
+#PBS -N colosseum-lerobot-molmoact2-so101-stack-white_bowls-100episodes-vlareplica-action-expert-only-40k
 #PBS -q auto
 #PBS -l select=1:ngpus=1
-#PBS -l walltime=10:00:00
+#PBS -l walltime=30:00:00
 
 cd $PBS_O_WORKDIR
 
@@ -22,7 +22,7 @@ if [ -f "$ENV_FILE" ]; then
 fi
 : "${HF_TOKEN:?HF_TOKEN not found. Add it to $ENV_FILE or set push_to_hub=false.}"
 
-LOG_DIR='./logs/pi05-so101-stack-white_bowls-100episodes-vlareplica-40k'
+LOG_DIR='./logs/molmoact2-so101-stack-white_bowls-100episodes-vlareplica-action-expert-only-40k'
 mkdir -p $LOG_DIR
 
 singularity exec -e --nv \
@@ -44,5 +44,5 @@ echo "Running on host: $(hostname)"
 echo "GPU info:"
 nvidia-smi --query-gpu=name,memory.total,memory.free --format=csv,noheader,nounits || echo "No GPU detected"
 
-bash scripts/pi05/train_so101_stack_white_bowls_100episodes_vlareplica_40k.sh
+bash scripts/molmoact2/train_so101_stack_white_bowls_100episodes_vlareplica_action_expert_only_40k.sh
 EOF
