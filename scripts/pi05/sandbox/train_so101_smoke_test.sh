@@ -12,7 +12,7 @@ export LD_LIBRARY_PATH="$FFMPEG_ROOT/lib:${LD_LIBRARY_PATH:-}"
 # python -m lerobot.scripts.convert_dataset_v21_to_v30 \
 #     --repo-id=liu-tao/so101_dataset
 
-DATASET="liu-tao/so101_dataset"
+DATASET="aarontung/franka_fine-tune-track"
 OUTPUT_DIR="outputs/pi05_so101_smoke_test"
 
 lerobot-train \
