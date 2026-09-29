@@ -2,14 +2,15 @@
 #PBS -P CFP05-CF-002
 #PBS -j oe
 #PBS -k oed
-#PBS -N colosseum-lerobot-pi05-so101-cube-drawer-40k
+#PBS -N colosseum-g05-so101-stack-bowls-10ep
 #PBS -q auto
 #PBS -l select=1:ngpus=1
-#PBS -l walltime=20:00:00
+#PBS -l walltime=30:00:00
 
 cd $PBS_O_WORKDIR
 
-image="/app1/common/singularity-img/hopper/pytorch/pytorch_2.7.0_cuda_12.8.sif"
+# ngc 24.04 ships Python 3.10, matching the g05 virtualenv (the 2.7.0 image is 3.12).
+image="/app1/common/singularity-img/hopper/pytorch/pytorch_2.3.0_cuda_12.4_ngc_24.04.sif"
 
 module load singularity
 
@@ -22,7 +23,7 @@ if [ -f "$ENV_FILE" ]; then
 fi
 : "${HF_TOKEN:?HF_TOKEN not found. Add it to $ENV_FILE or set push_to_hub=false.}"
 
-LOG_DIR='./logs/pi05-so101-cube-drawer-40k'
+LOG_DIR='./logs/g05-so101-stack-bowls-10ep'
 mkdir -p $LOG_DIR
 
 singularity exec -e --nv \
@@ -35,8 +36,8 @@ $image bash << 'EOF' > $LOG_DIR/stdout.$PBS_JOBID.log 2> $LOG_DIR/stderr.$PBS_JO
 
 mkdir -p /scratch/e1583535/tmp
 
-if [ -d "/scratch/e1583535/virtualenvs/lerobot-cu128" ]; then
-    source /scratch/e1583535/virtualenvs/lerobot-cu128/bin/activate
+if [ -d "/scratch/e1583535/virtualenvs/g05" ]; then
+    source /scratch/e1583535/virtualenvs/g05/bin/activate
 fi
 
 echo "Starting policy worker at $(date)"
@@ -44,5 +45,6 @@ echo "Running on host: $(hostname)"
 echo "GPU info:"
 nvidia-smi --query-gpu=name,memory.total,memory.free --format=csv,noheader,nounits || echo "No GPU detected"
 
-bash scripts/pi05/train_so101_cube_drawer_40k.sh
+# The g05 training script activates its own virtualenv (/scratch/e1583535/virtualenvs/g05).
+bash scripts/g05/train_so101_stack_bowls_10ep.sh
 EOF
