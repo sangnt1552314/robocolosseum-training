@@ -11,11 +11,14 @@ set -euo pipefail
 #   not line up, so state-relative actions (action - state) are meaningless here and are disabled.
 # - observation.state.wbc is not used as the policy state: its pivot and gripper dims are copies
 #   of the action at the same frame, which would leak the target.
-# - Cameras: head (480x1280 side-by-side stereo), left_wrist, right_wrist; videos are AV1
-#   (decoded by PyAV's libdav1d).
+# - Cameras: head, left_wrist, right_wrist, all 480x640 H.264. Trains on g1-carry-box-left-eye
+#   (built by tools/make_g1_left_eye_dataset.py): the original head camera is a 480x1280
+#   side-by-side stereo frame, and LeRobot's GR00T processor stacks cameras before resizing, so
+#   all cameras must share one shape. Only the left eye is kept (as in OpenHLM). At inference,
+#   crop the robot's head frame with tools/g1_head_left_eye.py:crop_head_left_eye.
 # - Launched through tools/lerobot_train_pyav_single_thread.py instead of `lerobot-train`: with
-#   PyAV's default threading, libdav1d starts a thread per core on every per-frame container open,
-#   which made AV1 loading ~2x slower per sample and data-bound. Same CLI args as lerobot-train.
+#   PyAV's default threading, FFmpeg starts a decoder thread per core on every per-frame
+#   container open, which slows data loading. Same CLI args as lerobot-train.
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
@@ -32,8 +35,8 @@ export PATH="$FFMPEG_ROOT/bin:$PATH"
 export LD_LIBRARY_PATH="$FFMPEG_ROOT/lib:${LD_LIBRARY_PATH:-}"
 
 # Local-only dataset; repo_id is just a label when --dataset.root points at it.
-DATASET="local/g1-carry-box"
-DATASET_ROOT="/scratch/e1583535/datasets/g1-carry-box"
+DATASET="local/g1-carry-box-left-eye"
+DATASET_ROOT="/scratch/e1583535/datasets/g1-carry-box-left-eye"
 
 JOB_NAME="groot-n17-g1-carry-box-40k"
 MODELS_ROOT="/scratch/Projects/CFP-05/CFP05-CF-002/robocolosseum-finetuned-models"

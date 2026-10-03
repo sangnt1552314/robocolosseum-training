@@ -25,7 +25,14 @@ HUB_REPO_ID="tsangb34/$JOB_NAME"
 WANDB_PROJECT="RoboColosseum"
 WANDB_ENTITY="tsangb34-national-university-of-singapore-students-union"
 
-lerobot-train \
+# Number of finished checkpoints kept on local disk (all of them stay on the Hub).
+export KEEP_LOCAL_CHECKPOINTS=2
+
+source "$(dirname "$0")/../utils/resumable_lerobot_train.sh"
+
+# Re-submitting the job resumes from the latest local/Hub checkpoint (model, optimizer,
+# scheduler, RNG and step) after a crash or walltime kill instead of starting over.
+run_resumable_train "$OUTPUT_DIR" "$HUB_REPO_ID" \
     --dataset.repo_id="$DATASET" \
     --dataset.root="$DATASET_ROOT" \
     --dataset.image_transforms.enable=true \
