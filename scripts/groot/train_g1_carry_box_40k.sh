@@ -37,6 +37,7 @@ export LD_LIBRARY_PATH="$FFMPEG_ROOT/lib:${LD_LIBRARY_PATH:-}"
 # Local-only dataset; repo_id is just a label when --dataset.root points at it.
 DATASET="local/g1-carry-box-left-eye"
 DATASET_ROOT="/scratch/e1583535/datasets/g1-carry-box-left-eye"
+SOURCE_DATASET_ROOT="/scratch/e1583535/datasets/g1-carry-box"
 
 JOB_NAME="groot-n17-g1-carry-box-40k"
 MODELS_ROOT="/scratch/Projects/CFP-05/CFP05-CF-002/robocolosseum-finetuned-models"
@@ -49,6 +50,17 @@ STEPS=40000
 
 WANDB_PROJECT="RoboColosseum"
 WANDB_ENTITY="tsangb34-national-university-of-singapore-students-union"
+# W&B never allows reusing a deleted run id, and the run id "groot-n17-g1-carry-box-40k" was
+# deleted, so the W&B run id differs from JOB_NAME (the W&B run is still named JOB_NAME).
+WANDB_RUN_ID="${JOB_NAME}-left-eye"
+
+# Build the left-eye dataset on the first run (CPU work on this job's cores, ~15-20 min).
+# Without it LeRobot would fall back to looking for "$DATASET" on the Hub and fail with a 404.
+if [ ! -f "$DATASET_ROOT/meta/info.json" ]; then
+    echo "Left-eye dataset not found; building $DATASET_ROOT"
+    python "$REPO_ROOT/tools/make_g1_left_eye_dataset.py" "$SOURCE_DATASET_ROOT" "$DATASET_ROOT" --workers 6
+fi
+test -f "$DATASET_ROOT/meta/info.json"
 
 python "$REPO_ROOT/tools/lerobot_train_pyav_single_thread.py" \
     --dataset.repo_id="$DATASET" \
@@ -83,5 +95,5 @@ python "$REPO_ROOT/tools/lerobot_train_pyav_single_thread.py" \
     --wandb.enable=true \
     --wandb.project="$WANDB_PROJECT" \
     --wandb.entity="$WANDB_ENTITY" \
-    --wandb.run_id="$JOB_NAME" \
+    --wandb.run_id="$WANDB_RUN_ID" \
     --wandb.disable_artifact=true
