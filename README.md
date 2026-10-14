@@ -27,8 +27,28 @@ the upstream recipe.
 | Stack bowls | SO-101 | `Jiamo0912/so101-stack-bowls` | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Stack cubes | SO-101 | `Jiamo0912/so101-stack-cubes` | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Carry box | Unitree G1 | `g1-carry-box` (local only) | | | ✓ | | |
+| Open drawer | DROID Franka | `droid-open-drawer` (local only) | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Pour water | DROID Franka | `droid-pour-water` (local only) | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Towel in basket | DROID Franka | `droid-towel-in-basket` (local only) | ✓ | ✓ | ✓ | ✓ | ✓ |
 
 Datasets are LeRobot v3 and are read from local copies under `/scratch/e1583535/datasets/`.
+
+### DROID Franka runs (`*_droid_<task>_5ep`)
+
+The DROID tasks use one shared recipe: 5 epochs per model, and each model's default LR (as suggested
+by its own repo, not rescaled for batch size), default chunk size, and only the final checkpoint.
+
+| Model | Effective batch | Cameras | Notes |
+| --- | --- | --- | --- |
+| MolmoAct2 | 64 (1 GPU) | left, right, wrist | `franka_droid` setup_type / control mode, gripper not normalized |
+| π₀.₅ | 32 | left, wrist (+ masked empty slot) | trains on `droid-<task>-left-wrist` |
+| GR00T N1.7 | 32 | left, wrist | full fine-tune (LLM, vision, projector, DiT, VLLN); trains on `droid-<task>-left-wrist` |
+| G0.5 | 16 | left, wrist (+ dummy slot) | native so100 recipe with the Franka data config in `scripts/g05/configs/` (via `hydra.searchpath`) |
+| LingBot-VLA v2 | 32 (8 x 4 grad-accum) | left, right, wrist | robot configs `scripts/lingbot/configs/robot_configs/droid_<task>.yaml` |
+
+`droid-<task>-left-wrist` is built by `tools/make_droid_left_wrist_dataset.py`. The script
+removes the right camera and lists left before wrist in `info.json`, which sets the camera order
+for GR00T and π₀.₅. The pi05 and groot scripts build it on first use if it is missing.
 
 ## Repository Structure
 

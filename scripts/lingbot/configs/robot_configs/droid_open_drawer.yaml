@@ -1,0 +1,44 @@
+# DROID Franka (single 7-DoF arm + gripper). observation.state / action are 8-D:
+# [joint_0..joint_6, gripper]. observation.cartesian_position is not used.
+states:
+  - observation.state.arm.position:
+      origin_keys:
+        - observation.state:
+            start: 0
+            end: 7
+
+  - observation.state.effector.position:
+      origin_keys:
+        - observation.state:
+            start: 7
+            end: 8
+
+actions:
+  - action.arm.position:
+      origin_keys:
+        - action:
+            start: 0
+            end: 7
+      subtract_state: true
+      # Plain action - state; the default (quaternion_local) only applies to end.position.
+      relative_type: null
+
+  - action.effector.position:
+      origin_keys:
+        - action:
+            start: 7
+            end: 8
+      subtract_state: false
+
+# Model camera order (left, right, wrist) is set by data.cameras in the train config.
+images:
+  - observation.images.camera_top:
+      origin_keys: observation.images.left_image
+
+  - observation.images.camera_wrist_left:
+      origin_keys: observation.images.right_image
+
+  - observation.images.camera_wrist_right:
+      origin_keys: observation.images.wrist
+
+norm_stats: /scratch/e1583535/projects/robocolosseum-training/scripts/lingbot/norm_stats/droid_open_drawer.json
