@@ -33,10 +33,13 @@ the upstream recipe.
 
 Datasets are LeRobot v3 and are read from local copies under `/scratch/e1583535/datasets/`.
 
-### DROID Franka runs (`*_droid_<task>_5ep`)
+### DROID Franka runs (`*_droid_<task>_5ep`, `*_droid_<task>_10ep`)
 
-The DROID tasks use one shared recipe: 5 epochs per model, and each model's default LR (as suggested
-by its own repo, not rescaled for batch size), default chunk size, and only the final checkpoint.
+The DROID tasks use one shared recipe: 5 epochs per model (`_5ep`), and each model's default LR (as
+suggested by its own repo, not rescaled for batch size), default chunk size, and only the final
+checkpoint. The `_10ep` variants are the same recipe for 10 epochs; they save no intermediate
+checkpoints and push only the final, ready-to-use model to the Hub repo root
+(`tsangb34/<model>-droid-<task>-10ep`; LingBot keeps its `checkpoints/global_step_<N>/hf_ckpt/` layout).
 
 | Model | Effective batch | Cameras | Notes |
 | --- | --- | --- | --- |
