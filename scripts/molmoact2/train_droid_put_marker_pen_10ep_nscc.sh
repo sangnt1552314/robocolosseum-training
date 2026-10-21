@@ -7,7 +7,7 @@ set -euo pipefail
 # 8 flow timesteps, default chunk 30 / 30 action steps, quantile normalization, franka_droid
 # setup_type / control mode with the gripper un-normalized, cameras left/right/wrist, the guide's
 # augmentation (95% crop at 16:9, +-5 deg rotation, color jitter) and default LRs (VLM 1e-5 /
-# ViT 5e-6 / connector 5e-6 / action expert 5e-5, 200 warmup steps, cosine decay to 1e-6).
+# ViT 5e-6 / connector 5e-6 / action expert 5e-5, 200 warmup steps, cosine decay by 10x, i.e. to 1e-6 for the VLM group).
 #
 # Multi-GPU change: lerobot-train is launched with `accelerate launch` on 8 GPUs (DDP). lerobot's
 # --batch_size is per process, so batch 8 x 8 GPUs keeps the effective batch at 64. The step count
@@ -87,6 +87,7 @@ accelerate launch \
     --dataset.image_transforms.tfs='{"crop":{"weight":1.0,"type":"RandomResizedCrop","kwargs":{"size":[360,640],"scale":[0.9025,0.9025],"ratio":[1.7777778,1.7777778]}},"rotation":{"weight":1.0,"type":"RandomRotation","kwargs":{"degrees":[-5.0,5.0],"interpolation":2}},"color":{"weight":1.0,"type":"ColorJitter","kwargs":{"brightness":0.2,"contrast":[0.8,1.2],"saturation":[0.8,1.2],"hue":0.05}}}' \
     --policy.type=molmoact2 \
     --policy.checkpoint_path=allenai/MolmoAct2 \
+    --policy.checkpoint_revision=e432d85f6e039edca44afb93c262f3084ab72a9c \
     --policy.device=cuda \
     --policy.action_mode=continuous \
     --policy.inference_action_mode=continuous \
@@ -112,7 +113,7 @@ accelerate launch \
     --policy.scheduler_decay_lr=1e-6 \
     --policy.push_to_hub=true \
     --policy.repo_id="$HUB_REPO_ID" \
-    --policy.private=false \
+    --policy.private=true \
     --policy.tags='["molmoact2","droid","franka","robocolosseum","put-marker-pen"]' \
     --save_checkpoint=true \
     --save_freq="$SAVE_FREQ" \

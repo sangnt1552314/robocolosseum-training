@@ -65,7 +65,7 @@ same, so each run is still exactly 10 epochs. Only the per-GPU split changes:
 | MolmoAct2 | 8 x 8 | 64 | 8,080 | `accelerate launch lerobot-train` (lerobot v0.6.1) |
 | π₀.₅ | 4 x 8 | 32 | 16,160 | `accelerate launch lerobot-train` (lerobot v0.6.1) |
 | GR00T N1.7 | 4 x 8 | 32 | 16,160 | `accelerate launch lerobot-train` (lerobot v0.6.1) |
-| LingBot-VLA v2 | 4 x 8 (x 1) | 32 | 16,150 | `torchrun tasks/vla/train_lingbotvla.py` |
+| LingBot-VLA v2 | 4 x 8 (x 1) | 32 | 16,150 | `torchrun tasks/vla/train_lingbotvla.py` (FSDP2) |
 | G0.5 | 2 x 8 | 16 | 10 epochs (derived) | `scripts/run/finetune.sh 8` |
 
 There are no Singularity images or `/scratch/e1583535` paths here. Everything lives under
@@ -102,14 +102,29 @@ Things that differ from Hopper on bare-metal ASPIRE 2B nodes:
   build from PyPI in all three venvs (`cpu_torchcodec`). LingBot and G0.5 decode video with it; the
   lerobot runs use PyAV.
 - **LingBot data parallelism**: LingBot's DDP path fails on 8 GPUs at the first backward ("Expected to
-  mark a variable ready only once ... model.action_out_proj.bias"). The NSCC config therefore uses
-  LingBot's own multi-GPU setup from `configs/vla/real_robot/real_robot.yaml` (`fsdp2`, `vlm_fsdp`,
-  `module_fsdp_enable`; Muon becomes `DistributedMuon`). Hopper used DDP only because it ran on 1 GPU.
+  mark a variable ready only once ... model.action_out_proj.bias"; with `enable_fp32` it wraps DDP with
+  an fp32 `MixedPrecision`, which registers each parameter's reducer hook twice). On Hopper's single GPU
+  the model was never wrapped. The NSCC config uses LingBot's own multi-GPU setup from
+  `configs/vla/real_robot/real_robot.yaml` (`fsdp2`, `vlm_fsdp`, `module_fsdp_enable`; Muon becomes
+  `DistributedMuon`). This also brings upstream's multi-GPU precision: the VLM, vision tower and
+  projections run in bf16 and the action expert in fp32, where the Hopper run was fp32 throughout.
+  Global batch, steps and LR are unchanged.
+- **LingBot W&B curves**: LingBot writes its training scalars only to TensorBoard (`<output>/runs`), on
+  Hopper too, so its W&B run shows only the config and system metrics while training. When training
+  ends, the upload script copies the TensorBoard scalars into the same W&B run
+  (`scripts/lingbot/sync_tb_to_wandb.py`, idempotent; it can also be run by hand).
+- **Private repos**: every repo in the RoboColosseum org is private, so these runs push privately too
+  (`--policy.private=true`, `PRIVATE=true` in the upload scripts). The five target repos were created
+  private in advance, and `create_repo(..., exist_ok=True)` keeps an existing repo's visibility.
 - **Hub push of the lerobot runs**: lerobot pushes the final model from rank 0 while the other 7 ranks
   wait in an NCCL barrier with torch's 10-minute default timeout. The final checkpoint is saved before
   the push, so after `accelerate` exits, the train scripts run `scripts/nscc/push_lerobot_final.sh <job>`.
   It uploads `checkpoints/last/pretrained_model` from a single process if any file is missing on
   `RoboColosseum/<job>`, and is a no-op otherwise. It can also be run by hand.
+- **Fallback watcher**: `scripts/nscc/fallback_watcher.sh <pbs id>:<job> ...` runs detached on the login
+  node (`setsid nohup ... >> logs/fallback_watcher.log &`). When PBS reports a job finished, it reruns that
+  model's idempotent upload script from a single process, so a model still reaches the Hub if the job
+  died after saving its final checkpoint.
 - **Reruns**: only the final step is checkpointed and lerobot refuses an existing output dir, so the
   lerobot scripts stop before launching if `outputs/.../<job>` exists. Move it aside and give W&B a new
   run id: `qsub -v WANDB_RUN_ID=<job>-r2 nscc_pbs/<job>.pbs`.

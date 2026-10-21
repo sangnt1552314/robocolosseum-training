@@ -2,6 +2,11 @@
 # so the same 16,150 steps = 10 epochs. Only the paths, the per-GPU split (micro 4 x 8 GPUs, no grad
 # accumulation), the per-rank dataloader workers and the data parallelism (FSDP2 as in upstream
 # real_robot.yaml, instead of Hopper's single-GPU DDP) differ.
+# Precision follows from the FSDP2 switch: LingBot's FSDP2 units for the VLM text layers (vlm_fsdp) and
+# the root (vision tower, embeddings, state/action projections, time MLP, depth/video align heads) use
+# its built-in bf16 mixed-precision policy; only the action-expert layers stay fp32 (enable_fp32). On
+# Hopper's single GPU nothing was wrapped (the ddp setting is skipped at world size 1), so the whole model
+# ran in fp32. This is upstream's own multi-GPU recipe; global batch, steps and LR are unchanged.
 model:
   model_path: /scratch/users/nus/duanj1/tansang/models/lingbot-vla-v2-6b
   tokenizer_path: /scratch/users/nus/duanj1/tansang/models/Qwen3-VL-4B-Instruct
@@ -77,8 +82,10 @@ train:
   routed_scaling_factor: 4.0
   use_shared_expert_gate: false
   use_moe_expert_lr: true
-  # Multi-GPU: LingBot's DDP wrapper fails on 8 GPUs ("marked ready twice" for action_out_proj),
-  # so use the upstream real_robot.yaml data parallelism (FSDP2, no full shard) instead of Hopper's ddp.
+  # Multi-GPU: LingBot's DDP wrapper fails on 8 GPUs ("marked ready twice" for action_out_proj): with
+  # enable_fp32 it wraps DDP(mixed_precision=MixedPrecision(param_dtype=float32)), which registers a second
+  # reducer hook per parameter. Hopper's ddp never applied (world size 1 skips the wrap), so use the
+  # upstream real_robot.yaml data parallelism (FSDP2, no full shard) instead.
   data_parallel_mode: fsdp2
   enable_full_shard: false
   module_fsdp_enable: true # upstream real_robot.yaml value

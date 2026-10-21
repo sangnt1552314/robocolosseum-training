@@ -125,7 +125,7 @@ accelerate launch \
     --policy.max_steps="$STEPS" \
     --policy.push_to_hub=true \
     --policy.repo_id="$HUB_REPO_ID" \
-    --policy.private=false \
+    --policy.private=true \
     --batch_size="$BATCH_SIZE" \
     --steps="$STEPS" \
     --num_workers=8 \

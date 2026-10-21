@@ -103,7 +103,7 @@ accelerate launch \
     --policy.compile_model=false \
     --policy.push_to_hub=true \
     --policy.repo_id="$HUB_REPO_ID" \
-    --policy.private=false \
+    --policy.private=true \
     --output_dir="$OUTPUT_DIR" \
     --job_name="$JOB_NAME" \
     --batch_size="$BATCH_SIZE" \
