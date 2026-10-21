@@ -30,6 +30,7 @@ the upstream recipe.
 | Open drawer | DROID Franka | `droid-open-drawer` (local only) | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Pour water | DROID Franka | `droid-pour-water` (local only) | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Towel in basket | DROID Franka | `droid-towel-in-basket` (local only) | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Put marker pen | DROID Franka | `droid-put-marker-pen` (local only, `_10ep` only) | ✓ | ✓ | ✓ | ✓ | ✓ |
 
 Datasets are LeRobot v3 and are read from local copies under `/scratch/e1583535/datasets/`.
 

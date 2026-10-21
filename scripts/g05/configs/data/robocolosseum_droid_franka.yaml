@@ -1,5 +1,5 @@
-# DROID Franka LeRobot v3 datasets (droid-open-drawer / droid-pour-water / droid-towel-in-basket)
-# for G0.5, loaded via hydra.searchpath (nothing is copied into GalaxeaVLA).
+# DROID Franka LeRobot v3 datasets (droid-open-drawer / droid-pour-water / droid-towel-in-basket /
+# droid-put-marker-pen) for G0.5, loaded via hydra.searchpath (nothing is copied into GalaxeaVLA).
 # Follows the native so100 data config (relative arm joints, q01/q99 norm, no action filter), but:
 #   - BaseLerobotDatasetV3 instead of SO100CanonicalLerobotDatasetV3, so lerobot_key picks the
 #     camera explicitly (the so100 class guesses slots from camera names and would map both
