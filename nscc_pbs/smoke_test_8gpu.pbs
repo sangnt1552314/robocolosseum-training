@@ -1,0 +1,21 @@
+#!/bin/bash
+#PBS -N colosseum-nscc-smoke-test
+#PBS -q normal
+#PBS -P 51001013
+#PBS -l select=1:ncpus=96:ngpus=8:mem=1500gb
+#PBS -l walltime=00:30:00
+#PBS -j oe
+#PBS -o /scratch/users/nus/duanj1/tansang/projects/robocolosseum-training/logs/pbs/
+# Compute-node smoke test (~5 min): 8 GPUs + NCCL in all three venvs, flash-attn / Triton, video
+# decoding, and W&B / Hub access. Nothing is trained or pushed. Run once before the training jobs.
+# A walltime <= 2 h routes this 8-GPU job to gdev (the training jobs, > 2 h, go to g2).
+
+set -euo pipefail
+
+ROBO_ROOT=/scratch/users/nus/duanj1/tansang/projects/robocolosseum-training
+cd "$ROBO_ROOT"
+
+LOG_DIR="$ROBO_ROOT/logs/nscc-smoke-test"
+mkdir -p "$LOG_DIR"
+
+bash scripts/nscc/smoke_test.sh > "$LOG_DIR/stdout.$PBS_JOBID.log" 2> "$LOG_DIR/stderr.$PBS_JOBID.log"

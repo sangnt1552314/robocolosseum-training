@@ -54,6 +54,47 @@ checkpoints and push only the final, ready-to-use model to the Hub repo root
 removes the right camera and lists left before wrist in `info.json`, which sets the camera order
 for GR00T and π₀.₅. The pi05 and groot scripts build it on first use if it is missing.
 
+### NSCC ASPIRE 2B runs (`*_droid_put_marker_pen_10ep_nscc`, 8 x H200)
+
+The same `_10ep` recipes, ported to one full ASPIRE 2B node (project `51001013`, `normal` queue,
+`select=1:ncpus=96:ngpus=8:mem=1500gb`). The global batch, LR and schedule of each model stay the
+same, so each run is still exactly 10 epochs. Only the per-GPU split changes:
+
+| Model | Per GPU x GPUs (x accum) | Global batch | Steps | Launcher |
+| --- | --- | --- | --- | --- |
+| MolmoAct2 | 8 x 8 | 64 | 8,080 | `accelerate launch lerobot-train` (lerobot v0.6.1) |
+| π₀.₅ | 4 x 8 | 32 | 16,160 | `accelerate launch lerobot-train` (lerobot v0.6.1) |
+| GR00T N1.7 | 4 x 8 | 32 | 16,160 | `accelerate launch lerobot-train` (lerobot v0.6.1) |
+| LingBot-VLA v2 | 4 x 8 (x 1) | 32 | 16,150 | `torchrun tasks/vla/train_lingbotvla.py` |
+| G0.5 | 2 x 8 | 16 | 10 epochs (derived) | `scripts/run/finetune.sh 8` |
+
+There are no Singularity images or `/scratch/e1583535` paths here. Everything lives under
+`/scratch/users/nus/duanj1/tansang`, as set in `scripts/nscc/env.sh`: framework checkouts in
+`projects/`, uv virtualenvs in `venvs/`, FFmpeg 7.1 in `opt/`, LingBot base models in `models/`,
+the datasets in `datasets/` (`droid-put-marker-pen`, plus the `-left-wrist` copy for π₀.₅ and
+GR00T), and outputs in `outputs/robocolosseum-finetuned-models/<job>`. Each final model is pushed
+to the RoboColosseum org as `RoboColosseum/<job>`. Job names end in `-nscc`, so these runs don't
+collide with the Hopper runs in the same W&B project.
+
+```bash
+# one-time, on the login node (idempotent; rerun any step that fails)
+bash scripts/nscc/setup_envs.sh all      # uv, ffmpeg, repos, datasets, 3 venvs, base models
+# .env in the repo root: HF_TOKEN=... and WANDB_API_KEY=... (see below)
+qsub nscc_pbs/molmoact2_droid_put_marker_pen_10ep.pbs
+qsub nscc_pbs/pi05_droid_put_marker_pen_10ep.pbs
+qsub nscc_pbs/groot_n17_droid_put_marker_pen_10ep.pbs
+qsub nscc_pbs/lingbot_droid_put_marker_pen_10ep.pbs
+qsub nscc_pbs/g05_droid_put_marker_pen_10ep.pbs
+qstat -u $USER; tail -f logs/<job>/stderr.<jobid>.log
+```
+
+Every run logs to W&B `tsangb34-national-university-of-singapore-students-union/RoboColosseum`
+(run id = job name), as on Hopper. The key has to belong to a member of that team, so put
+`WANDB_API_KEY=...` in `.env`. Without it the job falls back to the `~/.netrc` login. Before
+training, each PBS job runs two checks from `scripts/nscc/env.sh` and exits early if either fails:
+`nscc_check_wandb` (the key can write to the team) and `nscc_check_hf` (`HF_TOKEN` can push to
+`RoboColosseum`). `WANDB_ENTITY`, `WANDB_PROJECT` and `HF_HUB_ORG` can be overridden in `.env`.
+
 ## Repository Structure
 
 ```text

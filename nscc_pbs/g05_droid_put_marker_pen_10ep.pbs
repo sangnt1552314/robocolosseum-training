@@ -1,0 +1,40 @@
+#!/bin/bash
+#PBS -N colosseum-g05-droid-put-marker-pen-10ep-nscc
+#PBS -q normal
+#PBS -P 51001013
+#PBS -l select=1:ncpus=96:ngpus=8:mem=1500gb
+#PBS -l walltime=12:00:00
+#PBS -j oe
+#PBS -o /scratch/users/nus/duanj1/tansang/projects/robocolosseum-training/logs/pbs/
+# NSCC ASPIRE 2B: one full node (8 x H200, 96 cores). The 'normal' routing queue sends 8-GPU jobs to g2.
+# 10 epochs at global batch 16 (2/GPU); Hopper projected ~8 h on 1 GPU. Includes the export + Hub upload.
+
+set -euo pipefail
+
+ROBO_ROOT=/scratch/users/nus/duanj1/tansang/projects/robocolosseum-training
+cd "$ROBO_ROOT"
+
+# Paths, caches, uv/ffmpeg and secrets (.env: HF_TOKEN, optional WANDB_API_KEY / WANDB_ENTITY).
+source scripts/nscc/env.sh
+: "${HF_TOKEN:?HF_TOKEN not found. Add it to $ROBO_ROOT/.env.}"
+export PYTHONUNBUFFERED=1
+
+# Fail before using any GPU time unless W&B can log to $WANDB_ENTITY/$WANDB_PROJECT and HF_TOKEN
+# can push to $HF_HUB_ORG (both set in scripts/nscc/env.sh).
+nscc_check_wandb
+nscc_check_hf
+
+LOG_DIR="$ROBO_ROOT/logs/g05-droid-put-marker-pen-10ep-nscc"
+mkdir -p "$LOG_DIR"
+
+{
+    echo "Starting $PBS_JOBNAME ($PBS_JOBID) at $(date)"
+    echo "Running on host: $(hostname)"
+    echo "GPU info:"
+    nvidia-smi --query-gpu=name,memory.total,memory.free --format=csv,noheader,nounits || echo "No GPU detected"
+} > "$LOG_DIR/stdout.$PBS_JOBID.log"
+
+bash scripts/g05/train_droid_put_marker_pen_10ep_nscc.sh \
+    >> "$LOG_DIR/stdout.$PBS_JOBID.log" 2> "$LOG_DIR/stderr.$PBS_JOBID.log"
+
+echo "Finished at $(date)" >> "$LOG_DIR/stdout.$PBS_JOBID.log"
