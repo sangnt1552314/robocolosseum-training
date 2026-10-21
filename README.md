@@ -95,6 +95,30 @@ training, each PBS job runs two checks from `scripts/nscc/env.sh` and exits earl
 `nscc_check_wandb` (the key can write to the team) and `nscc_check_hf` (`HF_TOKEN` can push to
 `RoboColosseum`). `WANDB_ENTITY`, `WANDB_PROJECT` and `HF_HUB_ORG` can be overridden in `.env`.
 
+Things that differ from Hopper on bare-metal ASPIRE 2B nodes:
+
+- **torchcodec**: the `+cu128` torchcodec wheels need NVIDIA NPP (`libnppicc.so.12`), which the
+  Hopper images shipped but no venv here does. `setup_envs.sh` therefore installs the CPU torchcodec
+  build from PyPI in all three venvs (`cpu_torchcodec`). LingBot and G0.5 decode video with it; the
+  lerobot runs use PyAV.
+- **LingBot data parallelism**: LingBot's DDP path fails on 8 GPUs at the first backward ("Expected to
+  mark a variable ready only once ... model.action_out_proj.bias"). The NSCC config therefore uses
+  LingBot's own multi-GPU setup from `configs/vla/real_robot/real_robot.yaml` (`fsdp2`, `vlm_fsdp`,
+  `module_fsdp_enable`; Muon becomes `DistributedMuon`). Hopper used DDP only because it ran on 1 GPU.
+- **Hub push of the lerobot runs**: lerobot pushes the final model from rank 0 while the other 7 ranks
+  wait in an NCCL barrier with torch's 10-minute default timeout. The final checkpoint is saved before
+  the push, so after `accelerate` exits, the train scripts run `scripts/nscc/push_lerobot_final.sh <job>`.
+  It uploads `checkpoints/last/pretrained_model` from a single process if any file is missing on
+  `RoboColosseum/<job>`, and is a no-op otherwise. It can also be run by hand.
+- **Reruns**: only the final step is checkpointed and lerobot refuses an existing output dir, so the
+  lerobot scripts stop before launching if `outputs/.../<job>` exists. Move it aside and give W&B a new
+  run id: `qsub -v WANDB_RUN_ID=<job>-r2 nscc_pbs/<job>.pbs`.
+- **Queues**: `normal` routes 8-GPU jobs to `g2` (walltime 2-24 h) or `gdev` (at most 2 h, used by
+  `nscc_pbs/smoke_test_8gpu.pbs`). PBS gives every 8-GPU job the whole node (192 cores, 2203 GB).
+- **Inode quota**: the scratch file-count quota is 200,000 (see `myquota`). The three venvs plus the uv
+  cache come to about 210k inodes, so the quota is exceeded. `uv cache clean` frees about 29k (the
+  venvs hardlink the rest of it); ask NSCC for a higher file quota if it starts being enforced.
+
 ## Repository Structure
 
 ```text
